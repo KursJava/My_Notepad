@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 public class Frame extends JFrame implements ActionListener {
 
-    private String text = null;
+    private String text;
     private JMenuItem nowy, open, save, close, cut, copy, paste, fullscreen, normal, about;
     private JTextArea jTextArea;
     private JMenuBar menuBar;
@@ -22,15 +22,19 @@ public class Frame extends JFrame implements ActionListener {
     private JCheckBox normally, bold, italic;
     private JLabel label;
     private JDialog jDialog;
+    private JPopupMenu popupMenu;
+    private JMenuItem jcut, jcopy, jpaste, jdelete, join;
 
     Frame() {
         createFrame();
         createComponent();
         createKeybordShortCut();
         createMenu();
+        createPopupMenu();
         actionListner();
         setVisible(true);
     }
+
 
     private void createFrame() {
         setBounds(280, 100, 850, 500);
@@ -116,6 +120,26 @@ public class Frame extends JFrame implements ActionListener {
         add(scrollPane);
     }
 
+    private void createPopupMenu() {
+        popupMenu = new JPopupMenu();
+        jcut = new JMenuItem("Wytnij");
+        jcopy = new JMenuItem("Kopiuj");
+        jpaste = new JMenuItem("Wklej");
+        jdelete = new JMenuItem("Usuń wszystko");
+        join = new JMenuItem("Dołącz");
+
+
+        popupMenu.add(jcut);
+        popupMenu.add(jcopy);
+        popupMenu.add(jpaste);
+        popupMenu.add(join);
+        popupMenu.addSeparator();
+        popupMenu.add(jdelete);
+
+        jTextArea.setComponentPopupMenu(popupMenu);
+
+    }
+
     private void actionListner() {
         nowy.addActionListener(this);
         open.addActionListener(this);
@@ -134,6 +158,11 @@ public class Frame extends JFrame implements ActionListener {
         about.addActionListener(this);
         helper.addActionListener(this);
         close.addActionListener(this);
+        jcut.addActionListener(this);
+        jpaste.addActionListener(this);
+        jcopy.addActionListener(this);
+        jdelete.addActionListener(this);
+        join.addActionListener(this);
 
     }
 
@@ -191,6 +220,21 @@ public class Frame extends JFrame implements ActionListener {
         }
         if (source == style) {
             setStyleText();
+        }
+        if (source == jcut) {
+            cutText();
+        }
+        if (source == jcopy) {
+            copyText();
+        }
+        if (source == jpaste) {
+            pasteText();
+        }
+        if (source == jdelete) {
+            deleteText();
+        }
+        if (source == join) {
+            joinText();
         }
     }
 
@@ -266,17 +310,19 @@ public class Frame extends JFrame implements ActionListener {
     }
 
     private void cutText() {
-        text = jTextArea.getText();
-        jTextArea.setText(" ");
+        text = jTextArea.getSelectedText();
+        String actualText = jTextArea.getText();
+        jTextArea.setText(null);
+
     }
 
     private void pasteText() {
-        jTextArea.setText(text);
+        jTextArea.insert(text, jTextArea.getCaretPosition());
+
     }
 
     private void copyText() {
-        text = jTextArea.getText();
-        jTextArea.setText(text + text);
+        text = jTextArea.getSelectedText();
     }
 
     private void setFontSizeText() {
@@ -297,8 +343,8 @@ public class Frame extends JFrame implements ActionListener {
     }
 
     private void deleteText() {
-        jTextArea.getText();
-        jTextArea.setText(" ");
+        text = jTextArea.getText();
+        jTextArea.setText(null);
     }
 
     private void insertTime() {
@@ -343,6 +389,11 @@ public class Frame extends JFrame implements ActionListener {
         jDialog.setVisible(true);
     }
 
+    private void joinText() {
+        text = jTextArea.getSelectedText();
+        jTextArea.insert(text + "\n", jTextArea.getCaretPosition());
+    }
+
     private void JDialogListner() {
         jButton.addActionListener(new ActionListener() {
             @Override
@@ -375,6 +426,8 @@ public class Frame extends JFrame implements ActionListener {
             }
         });
     }
+
+
 }
 
 
