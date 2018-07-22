@@ -42,6 +42,18 @@ public class Frame extends JFrame implements ActionListener {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         Image image = new ImageIcon("src/main/resources/ikona.jpg").getImage();
         setIconImage(image);
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
     }
 
     private void createComponent() {
@@ -339,6 +351,7 @@ public class Frame extends JFrame implements ActionListener {
 
         if (message == JOptionPane.YES_OPTION) {
             Frame frame = new Frame();
+
         }
     }
 
