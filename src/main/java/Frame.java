@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,11 +13,11 @@ import java.util.Scanner;
 public class Frame extends JFrame implements ActionListener {
 
     private String text;
-    private JMenuItem nowy, open, save, close, cut, copy, paste, fullscreen, normal, about;
+    private JMenuItem nowy, open, save, saveAs, close, cut, copy, paste, fullscreen, normal, about;
     private JTextArea jTextArea;
     private JMenuBar menuBar;
     private JMenu file, edit, format, view, help;
-    private JMenuItem lowerCase, upperCase, fontSize, delete, time, helper, style;
+    private JMenuItem lowerCase, upperCase, wrappingLines, fontSize, delete, time, helper, style;
     private ScrollPane scrollPane;
     private JButton jButton;
     private JCheckBox normally, bold, italic;
@@ -24,6 +25,7 @@ public class Frame extends JFrame implements ActionListener {
     private JDialog jDialog;
     private JPopupMenu popupMenu;
     private JMenuItem jcut, jcopy, jpaste, jdelete, join;
+    private Object source;
 
     Frame() {
         createFrame();
@@ -35,23 +37,16 @@ public class Frame extends JFrame implements ActionListener {
         setVisible(true);
     }
 
-
     private void createFrame() {
         setBounds(280, 100, 850, 500);
-        setTitle(" My Notepad");
+        setTitle(" Bez tytułu - My Notepad");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         Image image = new ImageIcon("src/main/resources/ikona.jpg").getImage();
         setIconImage(image);
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
             SwingUtilities.updateComponentTreeUI(this);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (UnsupportedLookAndFeelException e) {
+        } catch (ClassNotFoundException | InstantiationException | UnsupportedLookAndFeelException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -59,6 +54,7 @@ public class Frame extends JFrame implements ActionListener {
     private void createComponent() {
         scrollPane = new ScrollPane();
         jTextArea = new JTextArea();
+        jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, 13));
         menuBar = new JMenuBar();
         file = new JMenu("Plik");
         edit = new JMenu("Edycja");
@@ -68,6 +64,7 @@ public class Frame extends JFrame implements ActionListener {
         nowy = new JMenuItem("Nowy");
         open = new JMenuItem("Otwórz...");
         save = new JMenuItem("Zapisz");
+        saveAs = new JMenuItem("Zapisz jako...");
         close = new JMenuItem("Zakończ");
         cut = new JMenuItem("Wytnij");
         copy = new JMenuItem("Kopiuj");
@@ -76,6 +73,7 @@ public class Frame extends JFrame implements ActionListener {
         time = new JMenuItem("Godzina/data");
         lowerCase = new JMenuItem("Małe litery");
         upperCase = new JMenuItem("Wielkie litery");
+        wrappingLines = new JMenuItem("Zawijanie wierszy");
         fontSize = new JMenuItem("Rozmiar czcionki");
         style = new JMenuItem("Styl czcionki");
         fullscreen = new JMenuItem("Pełen ekran");
@@ -89,15 +87,12 @@ public class Frame extends JFrame implements ActionListener {
         nowy.setAccelerator(KeyStroke.getKeyStroke("ctrl N"));
         open.setAccelerator(KeyStroke.getKeyStroke("ctrl O"));
         save.setAccelerator(KeyStroke.getKeyStroke("ctrl S"));
-        close.setAccelerator(KeyStroke.getKeyStroke("alt F4"));
         cut.setAccelerator(KeyStroke.getKeyStroke("ctrl X"));
         copy.setAccelerator(KeyStroke.getKeyStroke("ctrl C"));
         paste.setAccelerator(KeyStroke.getKeyStroke("ctrl V"));
         delete.setAccelerator(KeyStroke.getKeyStroke("DELETE"));
         fullscreen.setAccelerator(KeyStroke.getKeyStroke("ctrl F"));
-        normal.setAccelerator(KeyStroke.getKeyStroke("ctrl M"));
         time.setAccelerator(KeyStroke.getKeyStroke("F5"));
-        about.setAccelerator(KeyStroke.getKeyStroke("F1"));
     }
 
     private void createMenu() {
@@ -106,6 +101,7 @@ public class Frame extends JFrame implements ActionListener {
         file.add(nowy);
         file.add(open);
         file.add(save);
+        file.add(saveAs);
         file.addSeparator();
         file.add(close);
         menuBar.add(edit);
@@ -118,6 +114,7 @@ public class Frame extends JFrame implements ActionListener {
         menuBar.add(format);
         format.add(lowerCase);
         format.add(upperCase);
+        format.add(wrappingLines);
         format.addSeparator();
         format.add(fontSize);
         format.add(style);
@@ -156,10 +153,12 @@ public class Frame extends JFrame implements ActionListener {
         nowy.addActionListener(this);
         open.addActionListener(this);
         save.addActionListener(this);
+        saveAs.addActionListener(this);
         fullscreen.addActionListener(this);
         normal.addActionListener(this);
         lowerCase.addActionListener(this);
         upperCase.addActionListener(this);
+        wrappingLines.addActionListener(this);
         fontSize.addActionListener(this);
         style.addActionListener(this);
         cut.addActionListener(this);
@@ -175,17 +174,20 @@ public class Frame extends JFrame implements ActionListener {
         jcopy.addActionListener(this);
         jdelete.addActionListener(this);
         join.addActionListener(this);
-
     }
 
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
+
+        source = e.getSource();
 
         if (source == open) {
             textWillBeOpen();
         }
         if (source == save) {
             textWillBeSave();
+        }
+        if (source == saveAs) {
+            textWillBeSaveAS();
         }
         if (source == close) {
             closeNotepad();
@@ -204,6 +206,9 @@ public class Frame extends JFrame implements ActionListener {
         }
         if (source == upperCase) {
             textUpperCase();
+        }
+        if (source == wrappingLines) {
+            textWillBeWrappingLines();
         }
         if (source == cut) {
             cutText();
@@ -272,13 +277,32 @@ public class Frame extends JFrame implements ActionListener {
             try {
                 PrintWriter printWriter = new PrintWriter(file);
                 Scanner scanner = new Scanner(jTextArea.getText());
-                while (scanner.hasNext()) {
-                    printWriter.println(scanner.hasNext() + "\n");
+                while (scanner.hasNextLine()) {
+                    printWriter.println(scanner.nextLine() + "\n");
                     printWriter.close();
                 }
 
             } catch (FileNotFoundException e1) {
                 e1.printStackTrace();
+            }
+        }
+    }
+
+    private void textWillBeSaveAS() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save as");
+        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            try {
+                PrintWriter printWriter = new PrintWriter(file);
+                Scanner scanner = new Scanner(jTextArea.getText());
+                while (scanner.hasNextLine()) {
+                    printWriter.println(scanner.nextLine() + "\n");
+                    printWriter.close();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -321,16 +345,20 @@ public class Frame extends JFrame implements ActionListener {
         jTextArea.setText(uppercase);
     }
 
+    private void textWillBeWrappingLines() {
+        jTextArea.setLineWrap(true);
+        wrappingLines.setFont(new Font(null, Font.BOLD, 12));
+
+    }
+
     private void cutText() {
         text = jTextArea.getSelectedText();
         String actualText = jTextArea.getText();
         jTextArea.setText(null);
-
     }
 
     private void pasteText() {
         jTextArea.insert(text, jTextArea.getCaretPosition());
-
     }
 
     private void copyText() {
@@ -338,10 +366,16 @@ public class Frame extends JFrame implements ActionListener {
     }
 
     private void setFontSizeText() {
-        text = jTextArea.getText();
-        String size = JOptionPane.showInputDialog(fontSize, "Wprowadź rozmiar czcionki");
-        jTextArea.setFont(new Font("SansSerif", Font.PLAIN, Integer.parseInt(size)));
-        jTextArea.setText(text);
+        try {
+            text = jTextArea.getText();
+            String size = JOptionPane.showInputDialog(fontSize, "Wprowadź rozmiar czcionki",
+                    "Ustawienia rozmiaru czcionki", JOptionPane.INFORMATION_MESSAGE);
+            jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, Integer.parseInt(size)));
+            jTextArea.setText(text);
+
+        } catch (NumberFormatException e) {
+            jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, 13));
+        }
     }
 
     private void newDocument() {
@@ -350,6 +384,7 @@ public class Frame extends JFrame implements ActionListener {
                 "Nowy dokument", JOptionPane.INFORMATION_MESSAGE);
 
         if (message == JOptionPane.YES_OPTION) {
+            dispose();
             Frame frame = new Frame();
 
         }
@@ -369,7 +404,8 @@ public class Frame extends JFrame implements ActionListener {
 
     private void helperNotepad() {
         JOptionPane.showMessageDialog(helper, "             Przepraszamy !!! \n Pomoc techniczna dla" +
-                " programu \n My NotePad jest w budownie :( ", "Pomoc programu My Notepad", JOptionPane.INFORMATION_MESSAGE);
+                        " programu \n My Notepad jest w budownie :( ", "Pomoc programu My Notepad",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void setStyleText() {
@@ -381,7 +417,12 @@ public class Frame extends JFrame implements ActionListener {
         italic = new JCheckBox("Kursywa");
 
         jDialog = new JDialog();
-        jDialog.setBounds(300, 200, 350, 250);
+        jDialog.setLocationByPlatform(true);
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Dimension dimension = toolkit.getScreenSize();
+        int width = (int) dimension.getWidth() / 4;
+        int height = (int) dimension.getHeight() / 4;
+        jDialog.setBounds(width, height, 325, 250);
         jDialog.setTitle("Ustawienia stylu czcionki");
         jDialog.setResizable(false);
         jDialog.setLayout(null);
@@ -418,7 +459,7 @@ public class Frame extends JFrame implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String text = jTextArea.getText();
-                jTextArea.setFont(new Font("SansSerif", Font.PLAIN, 14));
+                jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, 13));
                 jTextArea.setText(text);
             }
         });
@@ -426,7 +467,7 @@ public class Frame extends JFrame implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String texty = jTextArea.getText();
-                jTextArea.setFont(new Font(null, Font.BOLD, 12));
+                jTextArea.setFont(new Font("Lucida Console", Font.BOLD, 13));
                 jTextArea.setText(texty);
             }
         });
@@ -434,12 +475,11 @@ public class Frame extends JFrame implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String texts = jTextArea.getText();
-                jTextArea.setFont(new Font(null, Font.ITALIC, 12));
+                jTextArea.setFont(new Font("Lucida Console", Font.ITALIC, 13));
                 jTextArea.setText(texts);
             }
         });
     }
-
 
 }
 
