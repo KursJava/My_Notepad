@@ -2,30 +2,26 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Scanner;
+
 
 public class Frame extends JFrame implements ActionListener {
 
-    private String text;
+
     private JMenuItem nowy, open, save, saveAs, close, cut, copy, paste, fullscreen, normal, about;
+    private String text;
     private JTextArea jTextArea;
-    private JMenuBar menuBar;
     private JMenu file, edit, format, view, help;
     private JMenuItem lowerCase, upperCase, wrappingLines, fontSize, delete, time, helper, style;
-    private ScrollPane scrollPane;
     private JButton jButton;
     private JCheckBox normally, bold, italic;
     private JLabel label;
-    private JDialog jDialog;
-    private JPopupMenu popupMenu;
     private JMenuItem jcut, jcopy, jpaste, jdelete, join;
     private Object source;
+    private JMenuBar menuBar;
+    private ScrollPane scrollPane;
+    private JDialog jDialog;
+    private JPopupMenu popupMenu;
+    private Service service;
 
     Frame() {
         createFrame();
@@ -38,7 +34,8 @@ public class Frame extends JFrame implements ActionListener {
     }
 
     private void createFrame() {
-        setBounds(280, 100, 850, 500);
+        setSize(850, 500);
+        setLocationRelativeTo(null);
         setTitle(" Bez tytułu - My Notepad");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         Image image = new ImageIcon("src/main/resources/ikona.jpg").getImage();
@@ -137,7 +134,6 @@ public class Frame extends JFrame implements ActionListener {
         jdelete = new JMenuItem("Usuń wszystko");
         join = new JMenuItem("Dołącz");
 
-
         popupMenu.add(jcut);
         popupMenu.add(jcopy);
         popupMenu.add(jpaste);
@@ -179,308 +175,86 @@ public class Frame extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
 
         source = e.getSource();
+        service = new Service();
 
         if (source == open) {
-            textWillBeOpen();
+            service.textWillBeOpen(jTextArea);
         }
         if (source == save) {
-            textWillBeSave();
+            service.textWillBeSave(jTextArea);
         }
         if (source == saveAs) {
-            textWillBeSaveAS();
+            service.textWillBeSaveAS(jTextArea);
         }
         if (source == close) {
-            closeNotepad();
+            try {
+                service.closeNotepad(close);
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
         }
         if (source == about) {
-            infoNotepad();
+            service.infoNotepad(about);
         }
         if (source == normal) {
-            normalWindows();
+            service.normalWindows(this);
         }
         if (source == fullscreen) {
-            fullScreen();
+            service.fullScreen(this);
         }
         if (source == lowerCase) {
-            textLowerCase();
+            service.textLowerCase(jTextArea);
         }
         if (source == upperCase) {
-            textUpperCase();
+            service.textUpperCase(jTextArea);
         }
         if (source == wrappingLines) {
-            textWillBeWrappingLines();
+            service.textWillBeWrappingLines(jTextArea);
+            wrappingLines.setFont(new Font(null, Font.BOLD, 12));
         }
         if (source == cut) {
-            cutText();
+            service.cutText(jTextArea);
         }
         if (source == paste) {
-            pasteText();
+            service.pasteText(jTextArea);
         }
         if (source == copy) {
-            copyText();
+            service.copyText(jTextArea);
         }
         if (source == fontSize) {
-            setFontSizeText();
+            service.setFontSizeText(jTextArea, fontSize);
         }
         if (source == nowy) {
-
-            newDocument();
+            service.newDocument(nowy, this);
         }
         if (source == delete) {
-            deleteText();
+            service.deleteText(jTextArea);
         }
         if (source == time) {
-            insertTime();
+            service.insertTime(jTextArea);
         }
         if (source == helper) {
-            helperNotepad();
+            service.helperNotepad(helper);
         }
         if (source == style) {
-            setStyleText();
+            service.setStyleText(jDialog, label, jButton, normally, italic, bold, jTextArea);
         }
         if (source == jcut) {
-            cutText();
+            service.cutText(jTextArea);
         }
         if (source == jcopy) {
-            copyText();
+            service.copyText(jTextArea);
         }
         if (source == jpaste) {
-            pasteText();
+            service.pasteText(jTextArea);
         }
         if (source == jdelete) {
-            deleteText();
+            service.deleteText(jTextArea);
         }
         if (source == join) {
-            joinText();
+            service.joinText(jTextArea);
         }
     }
-
-    private void textWillBeOpen() {
-        JFileChooser fileChooser = new JFileChooser();
-        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            try {
-                Scanner scanner = new Scanner(file);
-                while (scanner.hasNext()) {
-                    jTextArea.append(scanner.nextLine() + "\n");
-                }
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            }
-        }
-    }
-
-    private void textWillBeSave() {
-        JFileChooser fileChooser = new JFileChooser();
-        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            try {
-                PrintWriter printWriter = new PrintWriter(file);
-                Scanner scanner = new Scanner(jTextArea.getText());
-                while (scanner.hasNextLine()) {
-                    printWriter.println(scanner.nextLine() + "\n");
-                    printWriter.close();
-                }
-
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            }
-        }
-    }
-
-    private void textWillBeSaveAS() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save as");
-        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            try {
-                PrintWriter printWriter = new PrintWriter(file);
-                Scanner scanner = new Scanner(jTextArea.getText());
-                while (scanner.hasNextLine()) {
-                    printWriter.println(scanner.nextLine() + "\n");
-                    printWriter.close();
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void closeNotepad() {
-        int message = JOptionPane.showConfirmDialog(close, "Czy napewno chcesz wyjsć z programu?"
-                , "Zamknij program", JOptionPane.INFORMATION_MESSAGE);
-        if (message == JOptionPane.YES_OPTION) {
-            dispose();
-        }
-    }
-
-    private void infoNotepad() {
-        JOptionPane.showMessageDialog(about, "Alternatywa dla programu Notatnik \n" +
-                        "Wersja demo: v.1.0 \n" + " Develop by Karol Sidor",
-                "My Notepad-informacje", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void normalWindows() {
-        setBounds(280, 100, 850, 500);
-    }
-
-    private void fullScreen() {
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension dimension = toolkit.getScreenSize();
-        int height = dimension.height;
-        int width = dimension.width;
-        setBounds(0, 0, width, height);
-    }
-
-    private void textLowerCase() {
-        String small = jTextArea.getText();
-        String lowercase = small.toLowerCase();
-        jTextArea.setText(lowercase);
-    }
-
-    private void textUpperCase() {
-        String large = jTextArea.getText();
-        String uppercase = large.toUpperCase();
-        jTextArea.setText(uppercase);
-    }
-
-    private void textWillBeWrappingLines() {
-        jTextArea.setLineWrap(true);
-        wrappingLines.setFont(new Font(null, Font.BOLD, 12));
-
-    }
-
-    private void cutText() {
-        text = jTextArea.getSelectedText();
-        String actualText = jTextArea.getText();
-        jTextArea.setText(null);
-    }
-
-    private void pasteText() {
-        jTextArea.insert(text, jTextArea.getCaretPosition());
-    }
-
-    private void copyText() {
-        text = jTextArea.getSelectedText();
-    }
-
-    private void setFontSizeText() {
-        try {
-            text = jTextArea.getText();
-            String size = JOptionPane.showInputDialog(fontSize, "Wprowadź rozmiar czcionki",
-                    "Ustawienia rozmiaru czcionki", JOptionPane.INFORMATION_MESSAGE);
-            jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, Integer.parseInt(size)));
-            jTextArea.setText(text);
-
-        } catch (NumberFormatException e) {
-            jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, 13));
-        }
-    }
-
-    private void newDocument() {
-
-        int message = JOptionPane.showConfirmDialog(nowy, "Czy napewno chcesz otworzyć nowy dokument ?",
-                "Nowy dokument", JOptionPane.INFORMATION_MESSAGE);
-
-        if (message == JOptionPane.YES_OPTION) {
-            dispose();
-            Frame frame = new Frame();
-
-        }
-    }
-
-    private void deleteText() {
-        text = jTextArea.getText();
-        jTextArea.setText(null);
-    }
-
-    private void insertTime() {
-        text = jTextArea.getText();
-        LocalTime time = LocalTime.now();
-        LocalDate date = LocalDate.now();
-        jTextArea.setText(text + "\n " + time.toString() + "  " + date.toString());
-    }
-
-    private void helperNotepad() {
-        JOptionPane.showMessageDialog(helper, "             Przepraszamy !!! \n Pomoc techniczna dla" +
-                        " programu \n My Notepad jest w budownie :( ", "Pomoc programu My Notepad",
-                JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void setStyleText() {
-
-        label = new JLabel("Wybierz rodzaj czcionki");
-        jButton = new JButton("Zatwierdź");
-        normally = new JCheckBox("Normalna");
-        bold = new JCheckBox("Pogrubiona");
-        italic = new JCheckBox("Kursywa");
-
-        jDialog = new JDialog();
-        jDialog.setLocationByPlatform(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension dimension = toolkit.getScreenSize();
-        int width = (int) dimension.getWidth() / 4;
-        int height = (int) dimension.getHeight() / 4;
-        jDialog.setBounds(width, height, 325, 250);
-        jDialog.setTitle("Ustawienia stylu czcionki");
-        jDialog.setResizable(false);
-        jDialog.setLayout(null);
-        jButton.setBounds(100, 150, 140, 35);
-        label.setBounds(80, 10, 180, 35);
-        label.setFont(new Font("SansSerif", Font.BOLD, 15));
-        normally.setBounds(80, 40, 180, 35);
-        bold.setBounds(80, 70, 180, 35);
-        italic.setBounds(80, 100, 180, 35);
-        jDialog.add(normally);
-        jDialog.add(bold);
-        jDialog.add(italic);
-        jDialog.add(bold);
-        jDialog.add(italic);
-        jDialog.add(label);
-        jDialog.add(jButton);
-        JDialogListner();
-        jDialog.setVisible(true);
-    }
-
-    private void joinText() {
-        text = jTextArea.getSelectedText();
-        jTextArea.insert(text + "\n", jTextArea.getCaretPosition());
-    }
-
-    private void JDialogListner() {
-        jButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                jDialog.dispose();
-            }
-        });
-        normally.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String text = jTextArea.getText();
-                jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, 13));
-                jTextArea.setText(text);
-            }
-        });
-        bold.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String texty = jTextArea.getText();
-                jTextArea.setFont(new Font("Lucida Console", Font.BOLD, 13));
-                jTextArea.setText(texty);
-            }
-        });
-        italic.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String texts = jTextArea.getText();
-                jTextArea.setFont(new Font("Lucida Console", Font.ITALIC, 13));
-                jTextArea.setText(texts);
-            }
-        });
-    }
-
 }
 
 
