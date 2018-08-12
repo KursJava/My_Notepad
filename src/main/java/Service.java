@@ -28,7 +28,7 @@ public class Service {
         }
     }
 
-    public void textWillBeSave(JTextArea jTextArea ) {
+    public void textWillBeSave(JTextArea jTextArea) {
         JFileChooser fileChooser = new JFileChooser();
         if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
@@ -110,7 +110,7 @@ public class Service {
     }
 
     public void cutText(JTextArea jTextArea) {
-        String text = jTextArea.getSelectedText();
+        text = jTextArea.getSelectedText();
         String actualText = jTextArea.getText();
         jTextArea.setText(null);
     }
@@ -215,11 +215,12 @@ public class Service {
                 jDialog.dispose();
             }
         });
+        int size = jTextArea.getFont().getSize();
         normally.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String text = jTextArea.getText();
-                jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, 13));
+                jTextArea.setFont(new Font("Lucida Console", Font.PLAIN, size));
                 jTextArea.setText(text);
             }
         });
@@ -227,7 +228,7 @@ public class Service {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String texty = jTextArea.getText();
-                jTextArea.setFont(new Font("Lucida Console", Font.BOLD, 13));
+                jTextArea.setFont(new Font("Lucida Console", Font.BOLD, size));
                 jTextArea.setText(texty);
             }
         });
@@ -235,7 +236,7 @@ public class Service {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String texts = jTextArea.getText();
-                jTextArea.setFont(new Font("Lucida Console", Font.ITALIC, 13));
+                jTextArea.setFont(new Font("Lucida Console", Font.ITALIC, size));
                 jTextArea.setText(texts);
             }
         });
