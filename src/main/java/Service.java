@@ -75,7 +75,7 @@ public class Service {
 
     public void infoNotepad(JMenuItem about) {
         JOptionPane.showMessageDialog(about, "Alternatywa dla programu Notatnik \n" +
-                        "Wersja demo: v.1.0 \n" + " Develop by Karol Sidor",
+                        "Wersja demo: v2.0 \n" + " Develop by: Karol Sidor",
                 "My Notepad-informacje", JOptionPane.INFORMATION_MESSAGE);
     }
 
